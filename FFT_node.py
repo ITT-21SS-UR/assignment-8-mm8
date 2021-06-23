@@ -45,10 +45,9 @@ class FFTNode(Node):
         Formula taken from the provided Wiimote-FFT-SVM.ipynb notebook.
         """
         n = len(input_values)
-        return np.abs(fft.fft(input_values) / n)[1:n // 2]  # for val in input_values]
+        return np.abs(fft.fft(input_values) / n)[1:n // 2]
 
     def process(self, **kwds):
         input_values = kwds["accelIn"]
         frequency = self._calculate_fft(input_values)
-        print(frequency)
         return {'spectrumOut': frequency}
