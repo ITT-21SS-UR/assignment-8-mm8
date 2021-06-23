@@ -59,11 +59,12 @@ class ClassifierNode(Node):
             # TODO load from csv with genfromtxt
         else:
             # or create a new csv if no exist
-            self.existing_activity_data = pd.DataFrame(columns=['activity', 'data'])
+            self.existing_activity_data = pd.DataFrame(columns=['activity', 'data_avg', 'data_x', 'data_y', 'data_z'])
 
     def _save_recorded_data(self):
-        # TODO save separate ones for X, Y and Z too?
-        new_recording = {'activity': self.__activity_name, 'data': self.__recorded_data}
+        new_recording = {'activity': self.__activity_name, 'data_avg': self.__recorded_data,
+                         'data_x': self.__recorded_data_X, 'data_y': self.__recorded_data_Y,
+                         'data_z': self.__recorded_data_Z}
         # TODO or append directly to the activity if it exists in the df ?
         self.existing_activity_data = self.existing_activity_data.append(new_recording, ignore_index=True)
         self.existing_activity_data.to_csv(self.__log_file_path, sep=";", index=False)
@@ -222,6 +223,8 @@ class ClassifierNode(Node):
         self.train_classifier()
         self.train_text_field.setHtml(f"{self.get_current_output_text()}\n<b>Finished training!</b>")
 
+        self.reset_recorded_data()  # reset the current data so it won't be used for the next recording!
+
     def train_classifier(self):
         # TODO classifier training stuff
         pass
@@ -242,6 +245,8 @@ class ClassifierNode(Node):
     def predict_activity(self):
         # self.__predicted_action = self.classifier.predict(self.__recorded_data)  # TODO
         self.predict_text_field.setHtml(f"{self.get_current_output_text()}\n<b>Predicted action!</b>")
+
+        self.reset_recorded_data()  # reset the current data so it won't be used for the next prediction!
 
     def get_current_output_text(self):
         if self.current_mode == Mode.TRAIN.value:
