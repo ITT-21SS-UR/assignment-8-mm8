@@ -1,9 +1,21 @@
+"""
+There are 3 different gestures trained:
+- striking: Moving the device in a beating gesture down. Imaging trying to kill a mosquito on your desk. Unfortunately,
+ you only have a DIPPID device to do so...
+- running: Hold your DIPPID device in the right hand and running in the same place
+- shaking: Move your DIPPID device from right to left and back in way you would do at concerts when all activate their
+flashlights (not too fast)
+"""
+
 import pathlib
+import sys
 from enum import Enum
 from pyqtgraph.flowchart import Node
 from pyqtgraph.Qt import QtGui
 import pandas as pd
 from sklearn import svm
+from sklearn.exceptions import NotFittedError
+import numpy as np
 
 
 class Mode(Enum):
@@ -40,7 +52,7 @@ class ClassifierNode(Node):
         self.__recorded_data = []  # avg of the 3 input values
         self.__predicted_action = "Unknown"
 
-        self.classifier = svm.SVC()
+        self.classifier = svm.SVC(verbose=1)
 
         self.__init_record_log()
         self._init_ui()
@@ -56,7 +68,6 @@ class ClassifierNode(Node):
         if self.__log_file_path.exists():
             # load existing recordings
             self.existing_activity_data = pd.read_csv(self.__log_file_path, sep=";")
-            # TODO load from csv with genfromtxt
         else:
             # or create a new csv if no exist
             self.existing_activity_data = pd.DataFrame(columns=['activity', 'data_avg', 'data_x', 'data_y', 'data_z'])
@@ -65,9 +76,8 @@ class ClassifierNode(Node):
         new_recording = {'activity': self.__activity_name, 'data_avg': self.__recorded_data,
                          'data_x': self.__recorded_data_X, 'data_y': self.__recorded_data_Y,
                          'data_z': self.__recorded_data_Z}
-        # TODO or append directly to the activity if it exists in the df ?
         self.existing_activity_data = self.existing_activity_data.append(new_recording, ignore_index=True)
-        self.existing_activity_data.to_csv(self.__log_file_path, sep=";", index=False)
+        # self.existing_activity_data.to_csv(self.__log_file_path, sep=";", index=False)
 
     def _init_ui(self):
         self.ui = QtGui.QWidget()
@@ -119,7 +129,7 @@ class ClassifierNode(Node):
         self.train_button.clicked.connect(self.toggle_train_recording)
         training_button_layout.addWidget(self.train_button)
 
-        self.save_button = QtGui.QPushButton("Save recording")
+        self.save_button = QtGui.QPushButton("Save and train data")
         self.save_button.setStyleSheet("QPushButton {background-color: rgb(223, 183, 20)};")
         self.save_button.clicked.connect(self.finish_training_recording)
         self.save_button.setEnabled(False)  # disable button at first
@@ -178,7 +188,8 @@ class ClassifierNode(Node):
         self.__recorded_data.clear()
 
     def show_training_ui(self):
-        self.save_button.setEnabled(False)  # disable save button again in case we switched back from other mode
+        # FIXME only for faster testing!!
+        self.save_button.setEnabled(True)  # disable save button again in case we switched back from other mode
         self.activity_name_input.clear()
         self.train_text_field.clear()
 
@@ -226,8 +237,38 @@ class ClassifierNode(Node):
         self.reset_recorded_data()  # reset the current data so it won't be used for the next recording!
 
     def train_classifier(self):
-        # TODO classifier training stuff
-        pass
+        training_data = []
+        training_labels = []
+
+        for activity_name in self.existing_activity_data.activity.unique():
+            activity_df = self.existing_activity_data.loc[self.existing_activity_data['activity'] == activity_name]
+            avg_values = activity_df["data_avg"]  # TODO use the other values too?
+
+            train_set = []
+            for idx, value in avg_values.items():
+                if len(value) == 0:
+                    continue
+                # parse the string by removing the first two and the last character (this way we can use np.fromstring)
+                first_part = value[1:]
+                second_part = first_part[:-1]
+                val = np.fromstring(second_part, dtype=float, sep=',')
+                train_set.extend(val)
+
+            # make label vector as long as data vector
+            label = [activity_name]
+            len_train_set = len(train_set)
+
+            training_labels.extend(label * len_train_set)
+            training_data.extend(train_set)
+
+        # TODO a cutoff would be helpful to prevent ovefitting if one category has far more data than the others
+
+        if len(training_data) != len(training_labels):
+            print("Problem: lengths not equal!")
+            return
+
+        training_data = np.array(training_data).reshape(-1, 1)
+        self.classifier.fit(training_data, training_labels)
 
     def toggle_prediction_recording(self):
         if self.__recording_active:
@@ -243,9 +284,16 @@ class ClassifierNode(Node):
             self.predict_text_field.setHtml(f"{self.get_current_output_text()}\nRecording data for prediction...")
 
     def predict_activity(self):
-        # self.__predicted_action = self.classifier.predict(self.__recorded_data)  # TODO
-        self.predict_text_field.setHtml(f"{self.get_current_output_text()}\n<b>Predicted action!</b>")
+        try:
+            prediction_data = np.array(self.__recorded_data).reshape(-1, 1)
+            prediction_result = self.classifier.predict(prediction_data)
+            print("Prediction: ", prediction_result)
+            self.__predicted_action = prediction_result[0]
+        except NotFittedError:
+            sys.stderr.write("The classifier was used to predict before being trained with data!")
+            return
 
+        self.predict_text_field.setHtml(f"{self.get_current_output_text()}\n<b>Predicted action!</b>")
         self.reset_recorded_data()  # reset the current data so it won't be used for the next prediction!
 
     def get_current_output_text(self):
