@@ -188,8 +188,7 @@ class ClassifierNode(Node):
         self.__recorded_data.clear()
 
     def show_training_ui(self):
-        # FIXME only for faster testing!!
-        self.save_button.setEnabled(True)  # disable save button again in case we switched back from other mode
+        self.save_button.setEnabled(False)  # disable save button again in case we switched back from other mode
         self.activity_name_input.clear()
         self.train_text_field.clear()
 
