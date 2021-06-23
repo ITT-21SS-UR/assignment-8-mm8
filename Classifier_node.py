@@ -1,10 +1,5 @@
 import pathlib
-import time
 from enum import Enum
-
-from PyQt5 import QtCore
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
 from pyqtgraph.flowchart import Node
 from pyqtgraph.Qt import QtGui
 import pandas as pd
@@ -88,13 +83,14 @@ class ClassifierNode(Node):
 
         instruction_label = QtGui.QLabel("With the selection box above you can choose the mode of the classifier.\n"
                                          "If mode is \"Train\" you can start recording a sequence of accelerometer "
-                                         "values by clicking on the button below after you have entered a name / label"
-                                         " for this activity. By clicking the button again the recording is stopped "
-                                         "and the classifier will be trained with the recorded data.\n"
+                                         "values by clicking on the button \"Start recording\". By clicking the button"
+                                         " again the recording is stopped After you have recorded some data and "
+                                         "entered a name (i.e. a label) for this activity the recorded data will be "
+                                         "saved in a csv and the classifier will be trained with the recorded data.\n"
                                          "If mode is \"Predict\" you can start recording your accelerometer values as "
-                                         "well but this tiem after stopping the recorded data will be used to predict "
-                                         "the activity you most likely performed. The prediction is displayed in the "
-                                         "DisplayTextNode.")
+                                         "well but this time when you stop the recorded data will be used to predict "
+                                         "the activity you most likely performed based on existing activities. The "
+                                         "prediction result is displayed in the DisplayTextNode.")
         instruction_label.setWordWrap(True)
         self.layout.addWidget(instruction_label)
 
@@ -150,10 +146,6 @@ class ClassifierNode(Node):
         self.predict_text_field.setReadOnly(True)
         prediction_layout.addWidget(self.predict_text_field)
 
-        # TODO show which options exist:
-        existing_activities = self.existing_activity_data.activity.unique()
-        self.predict_text_field.setHtml(f"Existing recorded activities: {existing_activities}")
-
         self.prediction_ui.setLayout(prediction_layout)
         self.layout.addWidget(self.prediction_ui)
 
@@ -167,9 +159,8 @@ class ClassifierNode(Node):
         if self.current_mode == Mode.TRAIN.value:
             # reset data when switching from train to predict and vice versa
             self.reset_recorded_data()
-            # and change the ui
+            # and show the correct ui
             self.show_training_ui()
-            self.save_button.setEnabled(False)  # disable save button again in case we switched back from other mode
         elif self.current_mode == Mode.PREDICT.value:
             self.reset_recorded_data()
             self.show_prediction_ui()
@@ -186,10 +177,19 @@ class ClassifierNode(Node):
         self.__recorded_data.clear()
 
     def show_training_ui(self):
+        self.save_button.setEnabled(False)  # disable save button again in case we switched back from other mode
+        self.activity_name_input.clear()
+        self.train_text_field.clear()
+
         self.prediction_ui.hide()
         self.training_ui.show()
 
     def show_prediction_ui(self):
+        self.predict_text_field.clear()
+        # show which activities were already recorded:
+        existing_activities = self.existing_activity_data.activity.unique()
+        self.predict_text_field.setHtml(f"Existing recorded activities: {existing_activities}")
+
         self.training_ui.hide()
         self.prediction_ui.show()
 

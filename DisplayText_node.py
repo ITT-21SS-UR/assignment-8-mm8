@@ -21,7 +21,7 @@ class DisplayTextNode(Node):
         self.layout = QtGui.QVBoxLayout()
 
         self.predicted_class = QtGui.QLabel()
-        self.predicted_class.setText("Predicted activity: Unknown")
+        self.predicted_class.setStyleSheet("QLabel {font-weight: bold; font-size: 16px};")
         self.layout.addWidget(self.predicted_class)
 
         self.ui.setLayout(self.layout)
@@ -31,4 +31,4 @@ class DisplayTextNode(Node):
 
     def process(self, **kwds):
         predicted_activity = kwds["prediction"]
-        self.predicted_class.setText(f"Predicted activity: {predicted_activity}")
+        self.predicted_class.setText(f"Predicted activity:  {predicted_activity}")

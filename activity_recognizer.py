@@ -9,7 +9,7 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from DIPPID_pyqtnode import DIPPIDNode, BufferNode
 from FFT_node import FFTNode
-from classifier_node import ClassifierNode
+from Classifier_node import ClassifierNode
 from DisplayText_node import DisplayTextNode
 
 
@@ -73,9 +73,9 @@ class FlowChart:
         self.fftNodeZ = self.fc.createNode('FFTNode', pos=(250, 150))
 
         self.classifierNode = self.fc.createNode('ClassifierNode', pos=(350, 50))
-        self.layout.addWidget(self.classifierNode.ctrlWidget(), 0, 1, 3, 2)
+        self.layout.addWidget(self.classifierNode.ctrlWidget(), 0, 1, 2, 2)
         self.displayTextNode = self.fc.createNode('DisplayTextNode', pos=(470, 50))
-        self.layout.addWidget(self.displayTextNode.ctrlWidget(), 4, 1, 1, 2)
+        self.layout.addWidget(self.displayTextNode.ctrlWidget(), 2, 1, 2, 2)
 
     def connect_node_terminals(self):
         # connect the acceleration values with the buffer nodes and the buffers with the corresponding plot widgets
