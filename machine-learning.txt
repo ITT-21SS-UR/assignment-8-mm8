@@ -1,0 +1,36 @@
+1) What is the title of the paper?
+I chose the paper "Avoiding Pitfalls When Using Machine Learning in HCI Studies" from Kostakos et al. [1].
+
+
+2) What are some common use cases for machine learning in practical applications or research prototypes?
+Common use cases for machine and deep learning include image recognition, e.g. in CCTV cameras or in self-driving cars[2], image enhancement (for example, "Super Resolution" is an algorithm for increasing the resolution of images with pre-trained machine learning models which is implemented in the OpenCV-Library[3]), text analysis and translation (a popular translation service based on neural networks is DeepL [4]) as well as many other areas. I myself use CNNs in the Praxisseminar course to detect faces and face alignment as well as facial landmarks like eyes or mouth in webcam images [5][6].
+
+
+3) Which problems of machine learning do the authors of the paper identify? Explain one of them in detail.
+Problems and caveats outlined by Kostakos et al.[1] include paying attention to the difference between correlation and causality, not only reporting results of the whole population from which the training data is collected but from specific users as well and being careful when deriving explanations from the output of machine learning models. Especially in neural networks or unsupervised algorithms the inner workings are not really obvious, which makes it impossible to control all variables. Instead, hypothesis testing should still be used to draw such conclusions.
+
+They also argue that the accuracy alone is not sufficient when describing the performance of a ML classifier as it highly depends on the domain as well as the complexity of the machine learning task at hand. A simple example of why accuracy of a classifier alone isn't very useful would be a classifier that tries to predict the credibility of Internet articles when only being trained on articles from credible news websites. As most articles he is trained on are therefore very credible this classifier could simply always classify an article as credible and get a very high accuracy on this dataset. However, in practice this classifier would be quite useless if given any other datasets which is why the accuracy can be misleading. Therefore, a suitable baseline must always be reported as well. This way the accuracy value can be related to the baseline and the actual improvement on that can be determined. Other options would be to specify Precision and Recall measures like the ROC-Curve or the AUC in addition to the accuracy to get a better impression.
+
+
+4) What are the credentials of the authors with regard to machine learning? Have they published research on machine learning
+(or using machine-learning techniques) previously?
+One of the authors, Mirco Musolesi, seems to be an expert in this domain. He works at the University College of London as Professor of Computer Science and almost all of his interests listed on his website there either state Machine Learning directly or are closely related to machine learning [7]. Additionally, almost all of his recent work has to do with machine or deep learning (mostly neural networks and reinforcement learning) [8] and he is also the 9th most cited researcher on Google Scholar for the keyword 'machine intelligence'[9].
+
+The other author, Vassilis Kostakos, seems to be a little bit less involved in this domain. He works at the University of Melbourne as Professor of Human-Computer Interaction and his main interests as stated on his website are largely focused on HCI, Ubiquitous Computing, Social Computing and Internet of Things instead of machine learning [10]. However, machine learning is listed as one of the major parts of his work at another page on the University's website [11] and in two of his most recent publications machine learning techniques are used as tools [12][13].
+
+
+
+Sources:
+[1] Kostakos, V., & Musolesi, M. (2017). Avoiding pitfalls when using machine learning in HCI studies. interactions, 24(4), 34-37.
+[2] Sood, T. (Mai 3, 2020). Everyday Usage of Image Recognition, accessed 21.06.2021, https://createbytes.com/insights/Everyday-Usage-of-Image-Recognition/.
+[3] Weber, X. (March 17, 2020). Deep Learning based Super Resolution with OpenCV, accessed 21.06.2021, https://towardsdatascience.com/deep-learning-based-super-resolution-with-opencv-4fd736678066.
+[4] DeepL.(2021) DeepL Translator, accessed 21.06.2021, https://www.deepl.com/translator.
+[5] Gross, R., Matthews, I., Cohn, J., Kanade, T., & Baker, S. (2010). Multi-pie. Image and vision computing, 28(5), 807-813.
+[6] Deng, J., Guo, J., Zhou, Y., Yu, J., Kotsia, I., & Zafeiriou, S. (2019). Retinaface: Single-stage dense face localisation in the wild. arXiv preprint arXiv:1905.00641.
+[7] https://www.mircomusolesi.org/
+[8] https://www.mircomusolesi.org/papers/
+[9] https://scholar.google.com/citations?hl=de&view_op=search_authors&mauthors=label:machine_intelligence
+[10] https://people.eng.unimelb.edu.au/vkostakos/index.php
+[11] https://mspgh.unimelb.edu.au/digitalhealth-cre/people/chief-investigators/vassilis-kostakos
+[12] Jiang, W., Sarsenbayeva, Z., van Berkel, N., Wang, C., Yu, D., Wei, J., ... & Kostakos, V. (2021, May). User Trust in Assisted Decision-Making Using Miniaturized Near-Infrared Spectroscopy. In Proceedings of the 2021 CHI Conference on Human Factors in Computing Systems (pp. 1-16).
+[13] Mangaroska, K., Vesin, B., Kostakos, V., Brusilovsky, P., & Giannakos, M. (2021). Architecting Analytics Across Multiple E-learning Systems to Enhance Learning Design. IEEE Transactions on Learning Technologies.
