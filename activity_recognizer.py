@@ -9,7 +9,7 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from DIPPID_pyqtnode import DIPPIDNode, BufferNode
 from FFT_node import FFTNode
-from Svm_node import SVMNode
+from classifier_node import ClassifierNode
 from DisplayText_node import DisplayTextNode
 
 
@@ -35,45 +35,47 @@ class FlowChart:
     def create_plot_widgets(self):
         # create one plot widget for each axis below each other in the left column
         self.pw1 = pg.PlotWidget()
-        self.layout.addWidget(self.pw1, 0, 1)
+        self.layout.addWidget(self.pw1, 0, 3, 1, 1)
         self.pw1.setYRange(0, 1)
         self.pw1.setTitle("X-FFT")
 
         self.pw2 = pg.PlotWidget()
-        self.layout.addWidget(self.pw2, 1, 1)
+        self.layout.addWidget(self.pw2, 1, 3, 1, 1)
         self.pw2.setYRange(0, 1)
         self.pw2.setTitle("Y-FFt")
 
         self.pw3 = pg.PlotWidget()
-        self.layout.addWidget(self.pw3, 2, 1)
+        self.layout.addWidget(self.pw3, 2, 3, 1, 1)
         self.pw3.setYRange(0, 1)
         self.pw3.setTitle("Z-FFT")
 
     def set_plot_widgets(self):
-        self.pw1Node = self.fc.createNode('PlotWidget', pos=(300, -150))
+        self.pw1Node = self.fc.createNode('PlotWidget', pos=(300, -450))
         self.pw1Node.setPlot(self.pw1)
-        self.pw2Node = self.fc.createNode('PlotWidget', pos=(300, -50))
+        self.pw2Node = self.fc.createNode('PlotWidget', pos=(300, -350))
         self.pw2Node.setPlot(self.pw2)
-        self.pw3Node = self.fc.createNode('PlotWidget', pos=(300, 150))
+        self.pw3Node = self.fc.createNode('PlotWidget', pos=(300, -250))
         self.pw3Node.setPlot(self.pw3)
 
     def create_nodes(self):
         # create the dippid node and set the provided port automatically
-        self.dippidNode = self.fc.createNode("DIPPID", pos=(-50, 0))
+        self.dippidNode = self.fc.createNode("DIPPID", pos=(-20, 0))
         self.dippidNode.set_connection_port(self.port)
 
         # create buffer nodes for each axis
-        self.bufferNodeX = self.fc.createNode('Buffer', pos=(50, -150))
-        self.bufferNodeY = self.fc.createNode('Buffer', pos=(50, 0))
-        self.bufferNodeZ = self.fc.createNode('Buffer', pos=(50, 150))
+        self.bufferNodeX = self.fc.createNode('Buffer', pos=(100, -150))
+        self.bufferNodeY = self.fc.createNode('Buffer', pos=(100, 0))
+        self.bufferNodeZ = self.fc.createNode('Buffer', pos=(100, 150))
 
         # create fft nodes for each axis
-        self.fftNodeX = self.fc.createNode('FFTNode', pos=(170, -150))
-        self.fftNodeY = self.fc.createNode('FFTNode', pos=(170, 0))
-        self.fftNodeZ = self.fc.createNode('FFTNode', pos=(170, 150))
+        self.fftNodeX = self.fc.createNode('FFTNode', pos=(250, -150))
+        self.fftNodeY = self.fc.createNode('FFTNode', pos=(250, 0))
+        self.fftNodeZ = self.fc.createNode('FFTNode', pos=(250, 150))
 
-        self.svmNode = self.fc.createNode('SVMNode', pos=(250, 0))
-        self.displayTextNode = self.fc.createNode('DisplayTextNode', pos=(320, 150))
+        self.classifierNode = self.fc.createNode('ClassifierNode', pos=(350, 50))
+        self.layout.addWidget(self.classifierNode.ctrlWidget(), 0, 1, 3, 2)
+        self.displayTextNode = self.fc.createNode('DisplayTextNode', pos=(470, 50))
+        self.layout.addWidget(self.displayTextNode.ctrlWidget(), 4, 1, 1, 2)
 
     def connect_node_terminals(self):
         # connect the acceleration values with the buffer nodes and the buffers with the corresponding plot widgets
@@ -84,20 +86,22 @@ class FlowChart:
         self.fc.connectTerminals(self.bufferNodeY['dataOut'], self.fftNodeY['accelIn'])
         self.fc.connectTerminals(self.bufferNodeZ['dataOut'], self.fftNodeZ['accelIn'])
 
-        # TODO for testing only:
+        # for testing only: plot the output of the fft nodes
         self.fc.connectTerminals(self.fftNodeX['spectrumOut'], self.pw1Node['In'])
         self.fc.connectTerminals(self.fftNodeY['spectrumOut'], self.pw2Node['In'])
         self.fc.connectTerminals(self.fftNodeZ['spectrumOut'], self.pw3Node['In'])
 
-        # connect the log node with the acceleration buffer nodes and the normal vector node
-        # self.fc.connectTerminals(self.dippidNode['accelX'], self.logNode['accelX'])
-        # self.fc.connectTerminals(self.dippidNode['accelY'], self.logNode['accelY'])
-        # self.fc.connectTerminals(self.dippidNode['accelZ'], self.logNode['accelZ'])
+        self.fc.connectTerminals(self.fftNodeX['spectrumOut'], self.classifierNode['valX'])
+        self.fc.connectTerminals(self.fftNodeY['spectrumOut'], self.classifierNode['valY'])
+        self.fc.connectTerminals(self.fftNodeZ['spectrumOut'], self.classifierNode['valZ'])
+
+        # connect the result of the classifier node with the display node
+        self.fc.connectTerminals(self.classifierNode['prediction'], self.displayTextNode['prediction'])
 
 
 def register_custom_nodes():
     fclib.registerNodeType(FFTNode, [('Fft',)])
-    fclib.registerNodeType(SVMNode, [('SVM',)])
+    fclib.registerNodeType(ClassifierNode, [('Classifier',)])
     fclib.registerNodeType(DisplayTextNode, [('Display',)])
 
 
@@ -119,6 +123,9 @@ def main():
     win.setCentralWidget(cw)
     layout = QtGui.QGridLayout()
     cw.setLayout(layout)
+
+    # win.showMaximized()
+    win.setGeometry(50, 50, 1500, 1200)
 
     # create the flowchart
     flowchart = FlowChart(layout, port)
